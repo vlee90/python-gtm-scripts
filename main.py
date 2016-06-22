@@ -10,9 +10,6 @@ from oauth2client import client
 from oauth2client import file
 from oauth2client import tools
 
-def printThis(statement):
-  print statement
-
 def GetService(api_name, api_version, scope, client_secrets_path):
   """Get a service that communicates to a Google API.
 
@@ -52,13 +49,14 @@ def GetService(api_name, api_version, scope, client_secrets_path):
 
   return service
 
-def FindGreetingsContainerId(service, account_id):
+def FindContainerId(service, account_id, container_name):
   """Find the greetings container ID.
 
   Args:
     service: the Tag Manager service object.
     account_id: the ID of the Tag Manager account from which to retrieve the
       Greetings container.
+    container_name: the name of the GTM container.
 
   Returns:
     The dictionary that represents the greetings container if it exists, or None
@@ -70,7 +68,7 @@ def FindGreetingsContainerId(service, account_id):
 
   # Find and return the Greetings container if it exists.
   for container in container_wrapper['containers']:
-    if container['name'] == 'CONTAINER NAME':
+    if container['name'] == container_name:
       return container['containerId']
   return None
 
@@ -125,23 +123,6 @@ def AddFieldToSetWithUserID(tag, user_id_value):
 
 
 def UpdateTagWithUserID(service, account_id, container_id, tag):
-  # """Update a Tag with a Rule.
-
-  # Args:
-  #   service: the Tag Manager service object.
-  #   account_id:  the ID of the account holding the container.
-  #   container_id: the ID of the container to create the rule in.
-  #   tag_id: the ID of the tag to associate with the rule.
-  #   rule_id: the ID of the rule to associate with the tag.
-  # """
-  # # Get the tag to update.
-  # tag = service.accounts().containers().tags().get(
-  #     accountId=account_id,
-  #     containerId=container_id,
-  #     tagId=tag_id).execute()
-  
-  # Update the Firing Rule for the Tag.
-  # tag = DefineFieldToSetWithUserID(tag, 'user id')
   user_id_present = False
   field_to_set_present = False
   for parameter in tag['parameter']:
@@ -185,30 +166,22 @@ def UpdateTagWithUserID(service, account_id, container_id, tag):
     print 'Tag already has User ID'
     pass
 
-def ReturnAllUniversalAnalyticsTags(service, account_id, container_id):
-  universal_tags = []
-  tags = service.accounts().containers().tags().list(
-    accountId=account_id,
-    containerId=container_id).execute()
-  for tag in tags['tags']:
-    if tag['type'] == 'ua':
-      universal_tags.append(tag)
-    pass
-
-  return universal_tags
-
-def ReturnAllTags(service, account_id, container_id):
+# TAGS
+def CallAllTags(service, account_id, container_id):
   tags = service.accounts().containers().tags().list(
     accountId=account_id,
     containerId=container_id
     ).execute()
   return tags
 
-def ReturnAllTriggers(service, account_id, container_id):
-  triggers = service.accounts().containers().triggers().list(
-    accountId=account_id,
-    containerId=container_id).execute()
-  return triggers
+def ReturnTagsOfTagType(tags, type):
+  universal_tags = []
+  for tag in tags['tags']:
+    if tag['type'] == 'type':
+      universal_tags.append(tag)
+    pass
+
+  return universal_tags
 
 def DeleteTagWithTagId(service, account_id, container_id, tag_id):
   try:
@@ -224,6 +197,31 @@ def DeleteTagWithTagId(service, account_id, container_id, tag_id):
   # except HttpError, error:
     # print ('There was an API error: %s :%s' % (error.resp.status, error.resp.reason))
 
+def DeleteAllTagsThatHaveNoTriggers(service, account_id, container_id):
+  tags = ReturnAllTags(service, account_id, container_id)
+  tags = tags['tags']
+  for tag in tags:
+    if 'firingTriggerId' in tag:
+
+      pass
+    elif 'teardownTag' in tag:
+
+      pass
+    elif tag['tagId'] == '741':
+
+      pass
+    else:
+      print tag['tagId']
+      DeleteTagWithTagId(service,account_id,container_id,tag['tagId'])
+      pass  
+
+# TRIGGERS
+def CallAllTriggers(service, account_id, container_id):
+  triggers = service.accounts().containers().triggers().list(
+    accountId=account_id,
+    containerId=container_id).execute()
+  return triggers
+
 def DeleteTriggerWithTriggerId(service, account_id, container_id, trigger_id):
   try:
     service.accounts().containers().triggers().delete(
@@ -235,15 +233,13 @@ def DeleteTriggerWithTriggerId(service, account_id, container_id, trigger_id):
   except TypeError, error:
     print 'There was an error in building the query: %s' %error
 
-  # except HttpError, error:
-    # print ('There was an API error: %s :%s' % (error.resp.status, error.resp.reason))
 def DeleteAllTriggersThatHaveNoTag(service, account_id,container_id):
-  triggers = ReturnAllTriggers(service, account_id, container_id)
+  triggers = CallAllTriggers(service, account_id, container_id)
   triggers = triggers['triggers']
   triggerObjects = []
   blankTriggerIds = []
 
-  tags = ReturnAllTags(service, account_id, container_id)
+  tags = CallAllTags(service, account_id, container_id)
   tags = tags['tags']
   tagFiringTriggersIds = []
 
@@ -282,23 +278,12 @@ def DeleteAllTriggersThatHaveNoTag(service, account_id,container_id):
   for trigger_id in blankTriggerIds:
     DeleteTriggerWithTriggerId(service, account_id, container_id, trigger_id)
 
-def DeleteAllTagsThatHaveNoTriggers(service, account_id, container_id):
-  tags = ReturnAllTags(service, account_id, container_id)
-  tags = tags['tags']
-  for tag in tags:
-    if 'firingTriggerId' in tag:
-
-      pass
-    elif 'teardownTag' in tag:
-
-      pass
-    elif tag['tagId'] == '741':
-
-      pass
-    else:
-      print tag['tagId']
-      DeleteTagWithTagId(service,account_id,container_id,tag['tagId'])
-      pass
+# VARIABLES
+def CallAllVariables(service, account_id, container_id):
+    variables = service.accounts().containers().variables().list(
+    accountId=account_id,
+    containerId=container_id).execute() 
+    return variables
 
 def DeleteVariableWithVariableID(service, account_id, container_id, variable_id):
   try:
@@ -313,33 +298,15 @@ def DeleteVariableWithVariableID(service, account_id, container_id, variable_id)
   except HttpError, error:
     print ('There was an API error: %s :%s' % (error.resp.status, error.resp.reason))
 
-
-
-def main(argv):
-  # Get tag manager account ID from command line.
-  assert len(argv) == 2 and 'usage: test-gtm.py <account_id>'
-  account_id = str(argv[1])
-
-  # Define the auth scopes to request.
-  scope = ['https://www.googleapis.com/auth/tagmanager.edit.containers']
-
-  # Authenticate and construct service.
-  service = GetService('tagmanager', 'v1', scope, 'client_secrets.json')
-
-  # Find the greetings container.
-  container_id = FindGreetingsContainerId(service, account_id)
-
-  triggers = ReturnAllTriggers(service, account_id, container_id)
+def DeleteVariablesThatAreUnused(service, account_id, container_id):
+  triggers = CallAllTriggers(service, account_id, container_id)
   triggers = triggers['triggers']
 
-  variables = service.accounts().containers().variables().list(
-    accountId=account_id,
-    containerId=container_id).execute() 
+  variables = CallAllVariables(service, account_id, container_id)
+  variables = variables['variables']  
 
   # Total List of Variable IDs in the GTM Container 
   variableObject = []
-
-  variables = variables['variables']
   for variable in variables:
     variableId = variable['variableId']  
     variableName = variable['name']
@@ -362,7 +329,7 @@ def main(argv):
       lookupVariable.append(variable)
 
   # Total List of Tags in the GTM Container
-  tags = ReturnAllTags(service, account_id, container_id)
+  tags = CallAllTags(service, account_id, container_id)
   tags = tags['tags']
 
   usedVariables = []
@@ -422,6 +389,35 @@ def main(argv):
   for variableId in unusedVariableIds:
     print variableId
     DeleteVariableWithVariableID(service, account_id, container_id, variableId)
+
+def main(argv):
+  # Get tag manager account ID from command line.
+  assert len(argv) == 3 and 'usage: test-gtm.py <account_id> <container_name>'
+  account_id = str(argv[1])
+  container_name = str(argv[2])
+
+  # Define the auth scopes to request.
+  scope = ['https://www.googleapis.com/auth/tagmanager.edit.containers']
+
+  # Authenticate and construct service.
+  service = GetService('tagmanager', 'v1', scope, 'client_secrets.json')
+
+  # Find the greetings container.
+  container_id = FindContainerId(service, account_id, container_name)
+
+  # Returns all UA tags
+  tags = CallAllTags(service, account_id, container_id)
+  tags = ReturnTagsOfTagType(tags, 'ua')
+
+  # config_count = 0
+  # for tag in tags:
+  #   tag_id = tag['tagId']
+  #   UpdateTagWithUserID(service, account_id, container_id, tag)    
+  #   config_count = config_count + 1
+  #   print 'Configurations Complete: {}'.format(config_count)
+
+
+  # print "User ID Configuration Complete"
 
 
 if __name__ == "__main__":
