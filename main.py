@@ -177,7 +177,7 @@ def CallAllTags(service, account_id, container_id):
 def ReturnTagsOfTagType(tags, type):
   universal_tags = []
   for tag in tags['tags']:
-    if tag['type'] == 'type':
+    if tag['type'] == type:
       universal_tags.append(tag)
     pass
 
@@ -284,6 +284,35 @@ def CallAllVariables(service, account_id, container_id):
     accountId=account_id,
     containerId=container_id).execute() 
     return variables
+
+def CreateVariable(service, account_id, container_id, name, type):
+  try:
+    body = {
+      'name' : name,
+      'type' : type,
+      'parameter' : [
+        {
+          'type' : 'integer',
+          'key' : 'dataLayerVersion',
+          'value' : '2'
+        },
+        {
+          'type' : 'template',
+          'key' : 'name',
+          'value' : 'testVariable'
+        }
+        ]
+    }
+    service.accounts().containers().variables().create(
+    accountId=account_id,
+    containerId=container_id,
+    body=body).execute()
+    print 'Created variable name: {}'.format(name)
+  except TypeError, error:
+    print 'There was an error in building the query: %s' %error
+
+  # except HttpError, error:
+    # print ('There was an API error: %s :%s' % (error.resp.status, error.resp.reason))
 
 def DeleteVariableWithVariableID(service, account_id, container_id, variable_id):
   try:
@@ -404,11 +433,9 @@ def main(argv):
 
   # Find the greetings container.
   container_id = FindContainerId(service, account_id, container_name)
-
   # Returns all UA tags
-  tags = CallAllTags(service, account_id, container_id)
-  tags = ReturnTagsOfTagType(tags, 'ua')
-
+  # tags = CallAllTags(service, account_id, container_id)
+  # tags = ReturnTagsOfTagType(tags, 'ua')
   # config_count = 0
   # for tag in tags:
   #   tag_id = tag['tagId']
@@ -418,7 +445,7 @@ def main(argv):
 
 
   # print "User ID Configuration Complete"
-
+  CreateVariable(service, account_id, container_id, 'Test Variable', 'v')
 
 if __name__ == "__main__":
   main(sys.argv)       
