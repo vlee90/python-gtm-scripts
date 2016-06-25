@@ -206,10 +206,7 @@ def DeleteAllTagsThatHaveNoTriggers(service, account_id, container_id):
       pass
     elif 'teardownTag' in tag:
 
-      pass
-    elif tag['tagId'] == '741':
-
-      pass
+      pas
     else:
       print tag['tagId']
       DeleteTagWithTagId(service,account_id,container_id,tag['tagId'])
@@ -404,12 +401,6 @@ def DeleteVariablesThatAreUnused(service, account_id, container_id):
       print 'VariableId: {} is Unused'.format(variableId)
       unusedVariableIds.append(variableId)
 
-
-  unusedVariableIds.remove('817')
-  unusedVariableIds.remove('823')
-  unusedVariableIds.remove('824')
-  unusedVariableIds.remove('855')
-  unusedVariableIds.remove('857')
   print 'Unused:'
   print unusedVariableIds
   print 'Used:'
@@ -421,7 +412,7 @@ def DeleteVariablesThatAreUnused(service, account_id, container_id):
 
 def main(argv):
   # Get tag manager account ID from command line.
-  assert len(argv) == 3 and 'usage: test-gtm.py <account_id> <container_name>'
+  assert len(argv) == 3 and 'usage: main.py <account_id> <container_name>'
   account_id = str(argv[1])
   container_name = str(argv[2])
 
@@ -433,19 +424,8 @@ def main(argv):
 
   # Find the greetings container.
   container_id = FindContainerId(service, account_id, container_name)
-  # Returns all UA tags
-  # tags = CallAllTags(service, account_id, container_id)
-  # tags = ReturnTagsOfTagType(tags, 'ua')
-  # config_count = 0
-  # for tag in tags:
-  #   tag_id = tag['tagId']
-  #   UpdateTagWithUserID(service, account_id, container_id, tag)    
-  #   config_count = config_count + 1
-  #   print 'Configurations Complete: {}'.format(config_count)
 
-
-  # print "User ID Configuration Complete"
-  CreateVariable(service, account_id, container_id, 'Test Variable', 'v')
+  DeleteVariablesThatAreUnused(service, account_id, container_id)
 
 if __name__ == "__main__":
   main(sys.argv)       
