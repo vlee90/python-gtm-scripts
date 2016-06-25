@@ -410,6 +410,45 @@ def DeleteVariablesThatAreUnused(service, account_id, container_id):
     print variableId
     DeleteVariableWithVariableID(service, account_id, container_id, variableId)
 
+def CreateDataLayerVariable(service, accountId, containerId, name, dLVariableName, defaultValue):
+  parameter = [ParameterKeyName(name)]
+  if defaultValue != None:
+    parameter.append(ParameterKeyDefaultValue(defaultValue))
+    parameter.append(ParameterKeySetDefaultValue('true'))
+
+  service.accounts().containers().variables().create(
+    accountId=accountId,
+    containerId=containerId,
+    body={
+      'name' : name,
+      'type' : 'v',
+      'parameter' : parameter
+    }).execute()
+
+def ParameterKeyName(name):
+  return {'type': 'template','key': 'name','value': name}
+
+def ParameterKeySetDefaultValue(isDefaultValue):
+  return {'type': 'boolean','key': 'setDefaultValue','value': isDefaultValue}
+
+def ParameterKeyDefaultValue(defaultValue):
+  return {'type': 'template','key': 'defaultValue','value': defaultValue}
+
+def CreateConstantVariable(service, accountId, containerId, name, value):
+  parameter = [ParameterKeyValue(value)]
+
+  service.accounts().containers().variables().create(
+    accountId=accountId,
+    containerId=containerId,
+    body={
+      'name' : name,
+      'type' : 'c',
+      'parameter' : parameter
+    }).execute()
+
+def ParameterKeyValue(value):
+  return {'type': 'template','key': 'value', 'value': value}
+
 def main(argv):
   # Get tag manager account ID from command line.
   assert len(argv) == 3 and 'usage: main.py <account_id> <container_name>'
@@ -425,7 +464,7 @@ def main(argv):
   # Find the greetings container.
   container_id = FindContainerId(service, account_id, container_name)
 
-  DeleteVariablesThatAreUnused(service, account_id, container_id)
+  CreateConstantVariable(service,account_id,container_id,'testconstant', 'tet')
 
 if __name__ == "__main__":
   main(sys.argv)       
