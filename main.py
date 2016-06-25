@@ -198,7 +198,7 @@ def DeleteTagWithTagId(service, account_id, container_id, tag_id):
     # print ('There was an API error: %s :%s' % (error.resp.status, error.resp.reason))
 
 def DeleteAllTagsThatHaveNoTriggers(service, account_id, container_id):
-  tags = ReturnAllTags(service, account_id, container_id)
+  tags = CallAllTags(service, account_id, container_id)
   tags = tags['tags']
   for tag in tags:
     if 'firingTriggerId' in tag:
@@ -274,6 +274,242 @@ def DeleteAllTriggersThatHaveNoTag(service, account_id,container_id):
 
   for trigger_id in blankTriggerIds:
     DeleteTriggerWithTriggerId(service, account_id, container_id, trigger_id)
+
+def CreateCustomEventTrigger(service, accountId, containerId, name, conditions):
+  filters = []
+  for condition in conditions:
+      if condition['logic'] == 'equals':
+          parameter = [
+            ParameterKeyArg(0, condition['condition']),
+            ParameterKeyArg(1, condition['value'])
+            ]
+          filters.append(FilterTypeEquals(parameter))
+
+      if condition['logic'] == 'contains':
+          parameter = [
+            ParameterKeyArg(0, condition['condition']),
+            ParameterKeyArg(1, condition['value'])
+            ]
+          filters.append(FilterTypeContains(parameter))
+
+      if condition['logic'] == 'starts_with':
+          parameter = [
+            ParameterKeyArg(0, condition['condition']),
+            ParameterKeyArg(1, condition['value'])
+            ]
+          filters.append(FilterTypeStartsWith(parameter))
+
+      if condition['logic'] == 'ends_with':
+          parameter = [
+            ParameterKeyArg(0, condition['condition']),
+            ParameterKeyArg(1, condition['value'])
+            ]
+          filters.append(FilterTypeEndsWith(parameter))
+
+      if condition['logic'] == 'match_regex':
+          parameter = [
+            ParameterKeyArg(0, condition['condition']),
+            ParameterKeyArg(1, condition['value'])
+            ]
+          filters.append(FilterTypeMatchRegex(parameter))
+
+      if condition['logic'] == 'match_regex_ignore_case':
+          parameter = [
+            ParameterKeyArg(0, condition['condition']),
+            ParameterKeyArg(1, condition['value'])
+            ]
+          filters.append(FilterTypeMatchRegexNegate(parameter))
+
+      if condition['logic'] == 'does_not_equal':
+          parameter = [
+            ParameterKeyArg(0, condition['condition']),
+            ParameterKeyArg(1, condition['value'])
+            ]
+          filters.append(FilterTypeEqualsNegate(parameter))
+
+      if condition['logic'] == 'does_not_contain':
+          parameter = [
+            ParameterKeyArg(0, condition['condition']),
+            ParameterKeyArg(1, condition['value'])
+            ]
+          filters.append(FilterTypeContainsNegate(parameter))
+
+      if condition['logic'] == 'does_not_start_with':
+          parameter = [
+            ParameterKeyArg(0, condition['condition']),
+            ParameterKeyArg(1, condition['value'])
+            ]
+          filters.append(FilterTypeStartsWithNegate(parameter))
+
+      if condition['logic'] == 'does_not_end_with':
+          parameter = [
+            ParameterKeyArg(0, condition['condition']),
+            ParameterKeyArg(1, condition['value'])
+            ]
+          filters.append(FilterTypeEndsWithNegate(parameter))
+      if condition['logic'] == 'does_not_match_regex':
+          parameter = [
+            ParameterKeyArg(0, condition['condition']),
+            ParameterKeyArg(1, condition['value'])
+            ]
+          filters.append(FilterTypeMatchRegexNegate(parameter))
+
+      if condition['logic'] == 'does_not_match_regex_ignore_case':
+          parameter = [
+            ParameterKeyArg(0, condition['condition']),
+            ParameterKeyArg(1, condition['value'])
+            ]
+          filters.append(FilterTypeMatchRegexIgnoreCaseNegate(parameter))
+
+      if condition['logic'] == 'less_than':
+          parameter = [
+            ParameterKeyArg(0, condition['condition']),
+            ParameterKeyArg(1, condition['value'])
+            ]
+          filters.append(FilterTypeLess(parameter))
+
+      if condition['logic'] == 'less_than_or_equal_to':
+          parameter = [
+            ParameterKeyArg(0, condition['condition']),
+            ParameterKeyArg(1, condition['value'])
+            ]
+          filters.append(FilterTypeLessOrEqual(parameter))
+
+      if condition['logic'] == 'greater_than':
+          parameter = [
+            ParameterKeyArg(0, condition['condition']),
+            ParameterKeyArg(1, condition['value'])
+            ]
+          filters.append(FilterTypeGreater(parameter))
+
+      if condition['logic'] == 'greater_than_or_equal_to':
+          parameter = [
+            ParameterKeyArg(0, condition['condition']),
+            ParameterKeyArg(1, condition['value'])
+            ]
+          filters.append(FilterTypeGreaterOrEquals(parameter))
+
+  service.accounts().containers().triggers().create(
+    accountId=accountId,
+    containerId=containerId,
+    body={
+      'name' : name,
+      'type' : 'always',
+      'filter' : filters
+    }).execute()
+
+def FilterTypeEquals(parameter):
+  return {
+    'type': 'equals',
+    'parameter': parameter
+  }
+
+def FilterTypeContains(parameter):
+  return {
+    'type': 'contains',
+    'parameter': parameter
+  }
+
+def FilterTypeStartsWith(parameter):
+  return {
+    'type': 'starts_with',
+    'parameter': parameter
+  }
+
+def FilterTypeEndsWith(parameter):
+  return {
+    'type': 'ends_with',
+    'parameter': parameter
+  }
+
+def FilterTypeMatchRegex(parameter):
+  return {
+    'type': 'match_regex',
+    'parameter': parameter
+  }
+
+def FilterTypeMatchRegexIgnoreCase(parameter):
+  parameter.append(ParameterKeyIgnoreCase('true'))
+  return {
+    'type': 'match_regex',
+    'parameter': parameter
+  }
+
+def FilterTypeEqualsNegate(parameter):
+  parameter.append(ParameterKeyNegate('true'))
+  return {
+    'type': 'equals',
+    'parameter': parameter
+  }
+
+def FilterTypeContainsNegate(parameter):
+  parameter.append(ParameterKeyNegate('true'))
+  return {
+    'type': 'contains',
+    'parameter': parameter
+  }
+
+def FilterTypeStartsWithNegate(parameter):
+  parameter.append(ParameterKeyNegate('true'))
+  return {
+    'type': 'starts_with',
+    'parameter': parameter
+  }
+
+def FilterTypeEndsWithNegate(parameter):
+  parameter.append(ParameterKeyNegate('true'))
+  return {
+    'type': 'ends_with',
+    'parameter': parameter
+  }
+
+def FilterTypeMatchRegexNegate(parameter):
+  parameter.append(ParameterKeyNegate('true'))
+  return {
+    'type': 'match_regex',
+    'parameter': parameter
+  }
+
+def FilterTypeMatchRegexIgnoreCaseNegate(parameter):
+  parameter.append(ParameterKeyNegate('true'))
+  parameter.append(ParameterKeyIgnoreCase('true'))
+  return {
+    'type': 'match_regex',
+    'parameter': parameter
+  }
+
+def FilterTypeLess(parameter):
+  return {
+    'type': 'less',
+    'parameter': parameter
+  }
+
+def FilterTypeLessOrEqual(parameter):
+  return {
+    'type': 'less_or_equal',
+    'parameter': parameter
+  }
+
+def FilterTypeGreater(parameter):
+  return {
+    'type': 'greater',
+    'parameter': parameter
+  }
+
+def FilterTypeGreaterOrEquals(parameter):
+  return {
+    'type': 'greater_or_equals',
+    'parameter': parameter
+  }
+
+def ParameterKeyArg(argNumber, arguement):
+  return {'type': 'template','key': 'arg{}'.format(argNumber),'value': arguement}
+
+def ParameterKeyNegate(negateValue):
+  return {'type': 'boolean','key': 'negate','value': negateValue}
+
+def ParameterKeyIgnoreCase(ignoreCase):
+  return {'type': 'boolean','key': 'ignore_case','value': ignoreCase}
 
 # VARIABLES
 def CallAllVariables(service, account_id, container_id):
@@ -464,7 +700,9 @@ def main(argv):
   # Find the greetings container.
   container_id = FindContainerId(service, account_id, container_name)
 
-  CreateConstantVariable(service,account_id,container_id,'testconstant', 'tet')
+  DeleteAllTriggersThatHaveNoTag(service,account_id,container_id)
+  DeleteVariablesThatAreUnused(service,account_id,container_id)
+  DeleteAllTagsThatHaveNoTriggers(service,account_id,container_id)
 
 if __name__ == "__main__":
   main(sys.argv)       
