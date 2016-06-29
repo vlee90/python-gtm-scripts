@@ -197,6 +197,27 @@ def DeleteTagWithTagId(service, account_id, container_id, tag_id):
   # except HttpError, error:
     # print ('There was an API error: %s :%s' % (error.resp.status, error.resp.reason))
 
+def DeleteTagWithTagOfType(service, account_id, container_id, type):
+  tags = CallAllTags(service, account_id, container_id)
+  sortedTags = ReturnTagsOfTagType(tags, type)
+  tagIds = []
+  for tag in sortedTags:
+    tagIds.append(tag['tagId'])
+
+  for tagId in tagIds:
+    DeleteTagWithTagId(service, account_id, container_id, tagId)
+
+def DeleteTagWithTagOfTypeAndContainName(service, account_id, container_id, type, name):
+    tags = CallAllTags(service, account_id, container_id)
+    sortedTags = ReturnTagsOfTagType(tags, type)
+    for tag in sortedTags:
+      tagName = tag['name']
+      isValuePresent = tagName.find(name)
+      if isValuePresent != -1:
+        tagId = tag['tagId']
+        DeleteTagWithTagId(service, account_id, container_id, tagId)
+
+
 def DeleteAllTagsThatHaveNoTriggers(service, account_id, container_id):
   tags = CallAllTags(service, account_id, container_id)
   tags = tags['tags']
@@ -557,8 +578,8 @@ def DeleteVariableWithVariableID(service, account_id, container_id, variable_id)
   except TypeError, error:
     print 'There was an error in building the query: %s' %error
 
-  except HttpError, error:
-    print ('There was an API error: %s :%s' % (error.resp.status, error.resp.reason))
+  # except HttpError, error:
+    # print ('There was an API error: %s :%s' % (error.resp.status, error.resp.reason))
 
 def DeleteVariablesThatAreUnused(service, account_id, container_id):
   triggers = CallAllTriggers(service, account_id, container_id)
@@ -635,8 +656,7 @@ def DeleteVariablesThatAreUnused(service, account_id, container_id):
       pass
     else:
       print 'VariableId: {} is Unused'.format(variableId)
-      unusedVariableIds.append(variableId)
-
+ 
   print 'Unused:'
   print unusedVariableIds
   print 'Used:'
@@ -700,9 +720,10 @@ def main(argv):
   # Find the greetings container.
   container_id = FindContainerId(service, account_id, container_name)
 
-  DeleteAllTriggersThatHaveNoTag(service,account_id,container_id)
-  DeleteVariablesThatAreUnused(service,account_id,container_id)
-  DeleteAllTagsThatHaveNoTriggers(service,account_id,container_id)
+  # DeleteAllTriggersThatHaveNoTag(service,account_id,container_id)
+  # DeleteVariablesThatAreUnused(service,account_id,container_id)
+  # DeleteAllTagsThatHaveNoTriggers(service,account_id,container_id)
+  # DeleteTagWithTagOfTypeAndContainName(service,account_id,container_id,'html', 'Versa One')
 
 if __name__ == "__main__":
   main(sys.argv)       
