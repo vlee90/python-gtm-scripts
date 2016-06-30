@@ -91,3 +91,4 @@ ENV/
 # GTM
 *.json
 *.dat
+*.p12

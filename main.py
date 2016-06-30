@@ -121,7 +121,6 @@ def AddFieldToSetWithUserID(tag, user_id_value):
   return tag
 
 
-
 def UpdateTagWithUserID(service, account_id, container_id, tag):
   user_id_present = False
   field_to_set_present = False
@@ -182,6 +181,21 @@ def ReturnTagsOfTagType(tags, type):
     pass
 
   return universal_tags
+
+def GetTagParameterKeyAndValue(service, account_id, container_id, key, value):
+  tagsWithKeyAndValue = []
+
+  tags = CallAllTags(service, account_id, container_id)['tags']
+  for tag in tags:
+    if 'parameter' in tag.keys():
+      parameters = tag['parameter']
+      for parameter in parameters:
+        if parameter['key'] == key:
+          if parameter['value'] == value:
+            print 'TagName: {} | TagId: {}'.format(tag['name'], tag['tagId'])
+            tagsWithKeyAndValue.append({tag['tagId'], tag['name']})
+
+  return tagsWithKeyAndValue
 
 def DeleteTagWithTagId(service, account_id, container_id, tag_id):
   try:
@@ -723,7 +737,13 @@ def main(argv):
   # DeleteAllTriggersThatHaveNoTag(service,account_id,container_id)
   # DeleteVariablesThatAreUnused(service,account_id,container_id)
   # DeleteAllTagsThatHaveNoTriggers(service,account_id,container_id)
-  # DeleteTagWithTagOfTypeAndContainName(service,account_id,container_id,'html', 'Versa One')
+  # for x in xrange(321,500):
+    # name = 'name is {}'.format(x)
+    # CreateVariable(service, account_id, container_id, name,'v')
+
+  # for x in xrange(136, 592):
+    # DeleteVariableWithVariableID(service,account_id,container_id,str(x))
+  GetTagParameterKeyAndValue(service, account_id, container_id, 'eventAction', 'click')
 
 if __name__ == "__main__":
   main(sys.argv)       
